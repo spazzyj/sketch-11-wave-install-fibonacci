@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+		<script src="http://threejs.org/build/three.min.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/renderers/Projector.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/renderers/CanvasRenderer.js"></script>
+
+		<script>
+
+			var socket = io.connect();
+			var potentiometerData;
+			socket.on('potent', function(data) {
+				potentiometerData = data.val;
+			});
+
+			var SEPARATION = 100, AMOUNTX = 50, AMOUNTY = 50;
+
+			var container, stats;
+			var camera, scene, renderer;
+
+			var particles, particle, count = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.y = 2000;
+				camera.rotation.x = -90 * Math.PI / 180;
+				camera.rotation.z = 90 * Math.PI / 180;
+
+				scene = new THREE.Scene();
+
+				particles = new Array();
+
+				var PI2 = Math.PI * 2;
+				var material = new THREE.SpriteCanvasMaterial( {
+
+					color: 0xffffff,
+					program: function ( context ) {
+
+						context.beginPath();
+						context.arc( 0, 0, 0.5, 0, PI2, true );
+						context.fill();
+
+					}
+
+				} );
+
+				var i = 0;
+
+				for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
+
+					for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
+
+						particle = particles[ i ++ ] = new THREE.Sprite( material );
+						particle.position.x = ix * SEPARATION - ( ( AMOUNTX * SEPARATION ) / 2 );
+						particle.position.z = iy * SEPARATION - ( ( AMOUNTY * SEPARATION ) / 2 );
+						scene.add( particle );
+
+					}
+
+				}
+
+				renderer = new THREE.CanvasRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+
+			}
+
+			function render() {
+
+				var i = 0;
+
+				for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
+
+					for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
+
+
+					particle = particles[ i++ ];
+
+						// particle.position.y = ( Math.sin( ( ix + count ) * .23 ) * 50 ) +
+						// 	( Math.sin( ( iy + count ) * 1 ) * 300 );
+
+						// particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+						// 	( Math.sin( ( iy + count ) * 0.9 ) * 270 );
+
+						// particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+						// 	( Math.sin( ( iy + count ) * 0.8 ) * 240 );
+
+						if (potentiometerData <= 13) {
+							particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+								( Math.sin( ( iy + count ) * 0.7 ) * 210 );
+
+						} else if (potentiometerData > 13 && potentiometerData <= 20){
+							particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+								( Math.sin( ( iy + count ) * 0.6 ) * 180 );
+
+						} else if (potentiometerData > 20 && potentiometerData <= 33){
+							particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+								( Math.sin( ( iy + count ) * 0.5 ) * 150 );
+
+						} else if (potentiometerData > 33 && potentiometerData <= 53){
+							particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+								( Math.sin( ( iy + count ) * 0.4 ) * 120 );
+
+						} else if (potentiometerData > 53 && potentiometerData <= 86){
+							particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+								( Math.sin( ( iy + count ) * 0.3 ) * 90 );
+
+						} else if (potentiometerData > 86 && potentiometerData <= 140){
+							particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+								( Math.sin( ( iy + count ) * 0.2 ) * 60 );
+
+						} else if (potentiometerData > 140) {
+							particle.position.y = ( Math.sin( ( ix + count ) * 0.23 ) * 50 ) +
+								( Math.sin( ( iy + count ) * 0.1 ) * 30 );
+						}
+
+						particle.scale.x = particle.scale.y = ( Math.sin( ( ix + count ) * 0.3 ) + 1 ) * 4 +
+							( Math.sin( ( iy + count ) * 0.5 ) + 1 ) * 12;
+
+					}
+
+				}
+
+				renderer.render( scene, camera );
+				count += 0.1;
+
+			}
+
+		</script>
+	</body>
+</html>
